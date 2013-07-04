@@ -61,5 +61,9 @@ $lang['en']['main'] ='Home';
 $lang['en']['enter'] ='Login';
 $lang['en']['users'] ='Currently registered users';
 $lang['en']['remove'] ='Remove';
+$lang['en']['profile'] ='Profile';
+$lang['en']['fname'] ='First Name';
+$lang['en']['lname'] ='Last Name';
+$lang['en']['ava'] ='avatar';
 
 ?>

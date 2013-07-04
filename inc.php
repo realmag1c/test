@@ -44,6 +44,58 @@ if(isset($_POST['password2'])){
   register();
 }
 
+if(isset($_POST['savepro'])){ 
+//	   echo '<script type="text/javascript">alert("1111111Data has been submitted to'.$_FILES["filename"]["tmp_name"].' ");</script>';
+	   /*
+if(is_uploaded_file($_FILES["fupload"]["tmp_name"]))
+
+   {
+	   echo '<script type="text/javascript">alert("'.$_FILES["fupload"]["tmp_name"].' '.$_FILES["fupload"]["name"].' ");</script>';
+//	   print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/'.$_POST['n'].'"},1000);  </script><center><h4>uploaded</h4></center>');}
+  move_uploaded_file($_FILES["fupload"]["tmp_name"],"avatars/" . $_FILES["fupload"]["name"]);	
+}
+*/
+
+if(is_uploaded_file($_FILES["fupload"]["tmp_name"]))
+
+   {
+		$path='avatars/';
+		if(preg_match('/[.](JPG)|(jpg)|(gif)|(GIF)|(png)|(PNG)$/',$_FILES['fupload']['name'])){
+			$filename=$_FILES['fupload']['name'];
+            $source=$_FILES['fupload']['tmp_name'];
+            $target=$path . $filename;
+            move_uploaded_file($source,$target);
+			if(preg_match('/[.](GIF)|(gif)$/',$filename)) {
+				$im=imagecreatefromgif($path.$filename) ; 
+            }
+            if(preg_match('/[.](PNG)|(png)$/',$filename)) {
+                $im=imagecreatefrompng($path.$filename) ;
+            }
+            if(preg_match('/[.](JPG)|(jpg)|(jpeg)|(JPEG)$/',$filename)) {
+                $im=imagecreatefromjpeg($path.$filename);
+            }
+ echo '<script type="text/javascript">alert("1111111Data has been submitted to'.$_FILES["fupload"]["tmp_name"].' ");</script>';        
+			$w=90;
+			$w_src=imagesx($im);
+			$h_src=imagesy($im);
+			$dest=imagecreatetruecolor($w,$w);
+			if($w_src>$h_src) {
+				imagecopyresampled($dest, $im, 0, 0,round((max($w_src,$h_src)-min($w_src,$h_src))/2),0, $w, $w,min($w_src,$h_src), min($w_src,$h_src));}
+			if ($w_src<$h_src) {
+				imagecopyresampled($dest, $im, 0, 0,0, 0, $w, $w,min($w_src,$h_src),min($w_src,$h_src)); }
+			if ($w_src==$h_src){
+				imagecopyresampled($dest,    $im, 0, 0, 0, 0, $w, $w, $w_src, $w_src);     }
+			$date=time();
+			imagejpeg($dest,$path.$date.".jpg");
+			$avatar=$path.$date.".jpg";
+			$delfull=$path.$filename;
+			unlink($delfull);
+		}
+	}
+//   $ava = $_FILES['avatar'];
+
+}
+
 //login
 if((!isset($_POST['password2']))&&(isset($_POST['login']))){ 
   login();
@@ -90,9 +142,36 @@ if ($_GET['do']=='article'){
   article();
 }
 
+if ($_GET['do']=='profile'){
+  profile();
+}
 
 }
 
+
+
+//profile
+function profile(){
+global $lang;
+
+    $query = mysql_query("SELECT * FROM users WHERE user_id='".mysql_real_escape_string($_COOKIE['id'])."' LIMIT 1");
+
+    $data = mysql_fetch_assoc($query);
+    
+
+	echo '<h2>Profile for user '.$data['user_login'].'</h2>';
+//user_
+	echo '<div align="center">
+	<form action="" method="post" enctype="multipart/form-data">
+	'.$lang[$_COOKIE['lan']]['fname'].'<br /><input name="fname" type="text" size="20" value="'.$data['user_fname'].'"><br />
+	'.$lang[$_COOKIE['lan']]['lname'].'<br /><input name="lname" type="text" size="20" value="'.$data['user_lname'].'"><br />
+	'.$lang[$_COOKIE['lan']]['email'].'<br /><input name="email" type="text" size="20" value="'.$data['user_email'].'"><br /><br />
+	'.$lang[$_COOKIE['lan']]['ava'].'<br /><input type="FILE" name="fupload">
+	<input name="savepro" type="submit" value="'.$lang[$_COOKIE['lan']]['save'].'"><br />
+	</form>
+	</div>';
+	
+}
 
 
 // Register

@@ -1,6 +1,6 @@
 <?
 //error_reporting(0);
-error_reporting(E_ERROR | E_PARSE);
+//error_reporting(E_ERROR | E_PARSE);
 session_start();
 
 require_once 'inc.php';
@@ -68,6 +68,7 @@ echo '<div align="center">
 
 }
 else{
+echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';
 echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/addnews">'.$lang[$_COOKIE['lan']]['add'].'</a></div>';
 echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/logout">'.$lang[$_COOKIE['lan']]['logout'].'</a></div>';
 }
