@@ -132,13 +132,14 @@ if(empty($_POST['login'])){echo $lang['en']['elog'];}
             elseif(!preg_match("/[-a-zA-Z0-9_]{3,20}@[-a-zA-Z0-9]{2,64}\.[a-zA-Z\.]{2,9}/", $_POST['email'])){echo $lang['en']['eemail'];}
               else{$login = htmlspecialchars(stripslashes($_POST['login'])); $password = md5(md5(htmlspecialchars(stripslashes($_POST['password']))));  $email = mysql_real_escape_string($_POST['email']);$insert = mysql_query("INSERT INTO `users` (`user_login` ,`user_password` ,`user_email` ) VALUES ('$login', '$password', '$email')");}
 
- if($insert == true){  
-  echo $lang['en']['reg'];  
-  print ('<script language="JavaScript">document.location="http://'.$_SERVER["HTTP_HOST"].'";  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
-  mail($email,$lang['en']['title'],$lang['en']['msg'],"Content-type: text/plain; charset=windows-1251 \r\nFrom: admin@".$_SERVER["HTTP_HOST"]);
-  }else{  
-  echo $lang['en']['err'];  
-  print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
+if($insert == true){  
+	echo $lang['en']['reg'];  
+	login();
+	//print ('<script language="JavaScript">document.location="http://'.$_SERVER["HTTP_HOST"].'";  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
+	mail($email,$lang['en']['title'],$lang['en']['msg'],"Content-type: text/plain; charset=windows-1251 \r\nFrom: admin@".$_SERVER["HTTP_HOST"]);
+}else{  
+	echo $lang['en']['err'];  
+	print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
   }                
 
 
