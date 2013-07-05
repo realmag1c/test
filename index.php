@@ -1,4 +1,4 @@
-<?
+<?php
 //error_reporting(0);
 //error_reporting(E_ERROR | E_PARSE);
 session_start();
@@ -53,7 +53,7 @@ require_once 'inc.php';
 </form>
 </div>
 
-<?
+<?php
 
 echo $lang[$_COOKIE['lan']]['users'].': '.users();
 if (!isset($_COOKIE['id'])){
@@ -68,9 +68,11 @@ echo '<div align="center">
 
 }
 else{
-echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';
-echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/addnews">'.$lang[$_COOKIE['lan']]['add'].'</a></div>';
-echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/logout">'.$lang[$_COOKIE['lan']]['logout'].'</a></div>';
+	if ($role=='admin'){ echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/userslist">'.$lang[$_COOKIE['lan']]['ulist'].'</a></div>'; }
+	echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';
+	if (($role=='editor')or($role=='admin')){ echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/addnews">'.$lang[$_COOKIE['lan']]['add'].'</a></div>';}
+	echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/logout">'.$lang[$_COOKIE['lan']]['logout'].'</a></div>';
+
 }
 
 ?>

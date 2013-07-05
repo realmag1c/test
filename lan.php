@@ -65,5 +65,19 @@ $lang['en']['profile'] ='Profile';
 $lang['en']['fname'] ='First Name';
 $lang['en']['lname'] ='Last Name';
 $lang['en']['ava'] ='avatar';
-
+$lang['en']['pedit'] ='Edit profile';
+$lang['en']['prem'] ='Delete profile';
+$lang['en']['ulist'] ='Users list';
+$lang['en']['admin'] ='admin';
+$lang['en']['editor'] ='editor';
+$lang['en']['user'] ='user';
+$lang['en']['ban'] ='banned';
+$lang['en']['banned'] ='You are banned from this site';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
+$lang['en'][''] ='';
 ?>
