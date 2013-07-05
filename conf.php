@@ -12,7 +12,10 @@ define('DB_NAME','new');
 define('DB_USER','root');
 define('DB_PASS','creator');
 
-$title='Main page';
 //GRANT ALL ON new.* TO user@localhost IDENTIFIED BY 'mGUPpB]!nnJS';
 ?>
+
+
+
+
 

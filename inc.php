@@ -43,6 +43,10 @@ if ((!isset($_GET['do']))or($_GET['do']=='news')){
 	showmain($_GET['p']);
 }
 
+if (isset($_POST['comtext'])){
+	comment();
+}
+
 if(isset($_POST['password2'])){ 
 	register();
 }
@@ -167,9 +171,9 @@ function profilerm(){
 //show profile 
 function profile(){
 	
-	global $lang;
+	global $lang, $role;
 	$db=dc();
-    $query = $db->query("SELECT * FROM users WHERE user_id='".mysql_real_escape_string($_COOKIE['id'])."' LIMIT 1");
+    $query = $db->query("SELECT * FROM users WHERE user_login='".$_GET['p']."' LIMIT 1");
     $data = $query->fetch();
 	echo "<h2>".$data['user_login']."'s profile</h2>";	
 	echo '<center><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></center>';
@@ -177,11 +181,13 @@ function profile(){
 	<li>First name: '.$data['user_fname'].'</li>
 	<li>Last name: '.$data['user_lname'].'</li>
 	<li>Email: '.$data['user_email'].'</li>
-	<li>Registered since: '.strtotime($data['user_regdate']).'</li>
+	<li>Registered since: '.$data['user_regdate'].'</li>
 	<li>Last login: '.$data['user_llogin'].'</li>
 	</ul></div>';
-	echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/editprofile">'.$lang[$_COOKIE['lan']]['pedit'].'</a> ';
-	echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';	
+	if($role!==false){
+		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/editprofile">'.$lang[$_COOKIE['lan']]['pedit'].'</a> ';
+		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';	
+	}
 }
 
 //profile save
@@ -362,7 +368,7 @@ global $lang;
 $db=dc();
 if (isset($_COOKIE['id']) and isset($_COOKIE['hash']))
 {   
-    $query = $db->query("SELECT * FROM users WHERE user_id = '".intval(mysql_real_escape_string($_COOKIE['id']))."' LIMIT 1");
+    $query = $db->query("SELECT * FROM users WHERE user_hash = '".$_COOKIE['hash']."' LIMIT 1");
     $userdata = $query->fetch();
     if(($userdata['user_hash'] !== $_COOKIE['hash']) or ($userdata['user_id'] !== $_COOKIE['id']))
     {
@@ -397,6 +403,50 @@ global $lang;
         print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');       
 }
 
+
+function comment(){
+	$db=dc();
+	if ((isset($_POST['comtitle']))and($_POST['comtitle']!=='')){$cti=$_POST['comtitle'];} else{$cti=cutt($_POST['comtext']);}
+	$db->query("INSERT INTO `comments` (`post_id` ,`title`, `comment` ,`login` ,`comdate` ) VALUES ('".$_POST['post_id']."', '".$cti."', '".$_POST['comtext']."', '".$_POST['user']."', '".date( 'Y-m-d H:i:s' )."');");
+}
+
+function article(){
+global $lang,$role;
+    	$db=dc();
+    	$query = $db->query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
+    	$data = $query->fetch();
+		if($_COOKIE['lan']=='en'){ $t='titleen'; $te='posten';}else{$t='titleua'; $te='postua';}
+    	echo '<h3>'.$data[$t].'</h3>';
+    	echo '<div>'.$data[$te].'</div>';
+    	if (($role=='editor')or($role=='admin')){ 
+		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/edit/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['edit'].'</a> ';
+		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/remove/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['remove'].'</a><hr>';
+
+		}
+
+		//comments
+		echo '<h3>Comments</h3>  <form action="" method="post">';
+		$q=$db->query("SELECT * FROM comments WHERE post_id='".mysql_real_escape_string($_GET['p'])."'");
+		if ($q){
+			while($d = $q->fetch()){
+				echo '<b>'.$d['title'].'</b><br>';
+				echo $d['comment'].'<br>';
+				echo 'Posted: '.$d['comdate'].' by <a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.$d['login'].'">'.$d['login'].'</a>';
+			}
+		}
+		if ($role!==false){		
+			echo'<br><b>'.$lang[$_COOKIE['lan']]['title'].'</b>
+			<p><input type="text" size="39" name="comtitle" value=""></p>
+			<p><textarea rows="7" cols="55" name="comtext"></textarea></p>
+			<input type="hidden" name="post_id" value="'.$_GET['p'].'">
+			<input type="hidden" name="user" value="'.user().'">
+			<p><input type="submit" value="'.$lang[$_COOKIE['lan']]['post'].'"></p>    
+			</form>';
+		//end comment
+		}
+}
+
+
 function add(){
 global $lang;
 echo '  <form action="" method="post">
@@ -410,6 +460,7 @@ echo '  <form action="" method="post">
     <p><input type="submit" value="'.$lang[$_COOKIE['lan']]['post'].'"></p>    
   </form>';
 }
+
 
 
 function edit(){
@@ -431,10 +482,17 @@ $db=dc();
 	</form>';
 }
 
+function cutt($tex){
+	if(strlen($tex)>15){	
+		return substr($tex,0,strpos($tex,' ',15));
+	}
+	else{return $tex;}
+}
+
 function cut($text){
 if(strlen($text>150)){
 	$s= substr($text,1, 150);
-	return substr($s,1,strrpos($s,' ')).'...';
+	return substr($s,0,strrpos($s,' ')).'...';
 }
 else{return $text;}
 }
@@ -471,19 +529,6 @@ global $lang;
 
 
 
-function article(){
-global $lang,$role;
-    	$db=dc();
-    	$query = $db->query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
-    	$data = $query->fetch();
-		if($_COOKIE['lan']=='en'){ $t='titleen'; $te='posten';}else{$t='titleua'; $te='postua';}
-    	echo '<h3>'.$data[$t].'</h3>';
-    	echo '<div>'.$data[$te].'</div>';
-    	if (($role=='editor')or($role=='admin')){ 
-		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/edit/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['edit'].'</a> ';
-		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/remove/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['remove'].'</a><hr>';
-	}
-}
 
 
 function remove($p){
@@ -507,9 +552,11 @@ if ($_GET['do']=='edit'){
 }
 
 if ($_GET['do']=='article'){
-  $query = $db->query("SELECT title".$_COOKIE['lan']." FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
+  $t="title".$_COOKIE['lan'];
+  $query = $db->query("SELECT $t FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
   $data = $query->fetch();
-  $title=$data['title'];
+  
+  $title=$data[$t];
 }
 
 
@@ -541,6 +588,16 @@ function role(){
 		$query=$db->query("SELECT user_role FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
 		$data = $query->fetch();
 		return $data['user_role'];
+	}
+	else{return false;}
+}
+
+function user(){
+	if (isset($_COOKIE['hash'])){
+		$db=dc();
+		$query=$db->query("SELECT user_login FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
+		$data = $query->fetch();
+		return $data['user_login'];
 	}
 	else{return false;}
 }
