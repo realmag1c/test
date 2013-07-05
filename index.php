@@ -4,9 +4,11 @@
 session_start();
 
 require_once 'inc.php';
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ua">
+	
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=windows-1251" />
 	<title><?php title();?></title>
@@ -20,11 +22,17 @@ require_once 'inc.php';
 <div id="wrapper">
 
 	<div id="header">
-		<strong><a href="http://<? echo $_SERVER["HTTP_HOST"]; ?>"><?echo $lang[$_COOKIE['lan']]['main'];?></a></strong>
+		<strong><a href="http://<?php echo $_SERVER["HTTP_HOST"]; ?>"><?echo $lang[$_COOKIE['lan']]['main'];?></a></strong><br>
+		<div>
+		
+		<form action="<? $_SERVER['PHP_SELF'] ?>" method="post">
+		<button type="submit" name="langua"><img src="http://<?php echo $_SERVER["HTTP_HOST"]; ?>/images/ua.jpg"> </button>
+		<button type="submit" name="langen"><img src="http://<?php echo $_SERVER["HTTP_HOST"]; ?>/images/en.jpg"> </button>
+		</form>
+		</div>
 	</div><!-- #header-->
 
 	<div id="middle">
-
 		<div id="container">
 			<div id="content">
 
@@ -39,17 +47,7 @@ require_once 'inc.php';
 
 
 		<div class="sidebar" id="sideLeft">
-<div>
-<form action="<? $_SERVER['PHP_SELF'] ?>" method="post">
-<select name="lang" size="1">
-<option value="ru" <?if ($lan=='ru'){echo 'selected';}?>>Русский</option>
-<option value="en" <?if ($lan=='en'){echo 'selected';}?>>English</option>
-</select> 
-<input name="submit" type="submit" value="<?echo $lang[$lan]['choose'];?>" />
 
-
-</form>
-</div>
 
 <?php
 
