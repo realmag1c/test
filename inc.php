@@ -29,33 +29,24 @@ else{
 }
 
 
+
+
 //main page
 if ((!isset($_GET['do']))or($_GET['do']=='news')){
-
-showmain($_GET['p']);
-
-}
-
-//register
-if ($_GET['do']=='register'){
-  reg();
+	showmain($_GET['p']);
 }
 
 if(isset($_POST['password2'])){ 
-  register();
+	register();
 }
 
 if(isset($_POST['savepro'])){ 
-
-savepro();
+	savepro();
 }
 
 //login
 if((!isset($_POST['password2']))&&(isset($_POST['login']))){ 
-  login();
-}
-if ($_GET['do']=='logout'){
-  logout();
+	login();
 }
 
 // add news
@@ -79,7 +70,7 @@ if((isset($_POST['text1']))&&(isset($_POST['title1']))){
   
 }
 
-
+if (isset($_GET['do'])){
 if ($_GET['do']=='addnews'){
 	if (clogin()=='ok'){  add();}
 }
@@ -93,42 +84,41 @@ if ($_GET['do']=='remove'){
 }
 
 if ($_GET['do']=='article'){
-  article();
+	article();
 }
 
-if (($_GET['do']=='profile')and(!isset($_GET['p']))){
-  profile();
+if (($_GET['do']=='profile')){
+	profile();
 }
 
 if ($_GET['do']=='editprofile'){
-  profileed();
+	profileed();
 }
 
-
 if ($_GET['do']=='profilerm'){
-  profilerm();
+	profilerm();
 }
 
 if ($_GET['do']=='userslist'){
-  userslist();
+	userslist();
+}
+
+//register
+if ($_GET['do']=='register'){
+	reg();
+}
+
+if ($_GET['do']=='logout'){
+	logout();
+}
 }
 }
 
-function role(){
-	if (isset($_COOKIE['hash'])){
-		dbc();
-		$query=mysql_query("SELECT user_role FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
-		$data = mysql_fetch_assoc($query);
-		return $data['user_role'];
-	}
-
-}
 
 // users list
 function userslist(){
 	global $lang,$role;
 	dbc();
-
 		if ($role=='admin'){
 			dbc();
 			$resp=mysql_query("SELECT user_role, user_login  FROM users ");
@@ -142,9 +132,7 @@ function userslist(){
 				}
 				echo '</ul></div>';
 			}
-			
 		}
-	
 }
 
 //Delete profile
@@ -164,13 +152,14 @@ function profilerm(){
 
 //show profile 
 function profile(){
+	
 	global $lang;
 	dbc();
     $query = mysql_query("SELECT * FROM users WHERE user_id='".mysql_real_escape_string($_COOKIE['id'])."' LIMIT 1");
     $data = mysql_fetch_assoc($query);
 	echo "<h2>".$data['user_login']."'s profile</h2>";	
+	echo '<center><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></center>';
 	echo '<div><ul>
-	<li><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></li>
 	<li>First name: '.$data['user_fname'].'</li>
 	<li>Last name: '.$data['user_lname'].'</li>
 	<li>Email: '.$data['user_email'].'</li>
@@ -178,8 +167,7 @@ function profile(){
 	<li>Last login: '.$data['user_llogin'].'</li>
 	</ul></div>';
 	echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/editprofile">'.$lang[$_COOKIE['lan']]['pedit'].'</a> ';
-	echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';
-	
+	echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';	
 }
 
 //profile save
@@ -206,12 +194,15 @@ function savepro(){
 			$w_src=imagesx($im);
 			$h_src=imagesy($im);
 			$dest=imagecreatetruecolor($w,$w);
+/*
 			if($w_src>$h_src) {
 				imagecopyresampled($dest, $im, 0, 0,round((max($w_src,$h_src)-min($w_src,$h_src))/2),0, $w, $w,min($w_src,$h_src), min($w_src,$h_src));}
 			if ($w_src<$h_src) {
 				imagecopyresampled($dest, $im, 0, 0,0, 0, $w, $w,min($w_src,$h_src),min($w_src,$h_src)); }
 			if ($w_src==$h_src){
 				imagecopyresampled($dest,    $im, 0, 0, 0, 0, $w, $w, $w_src, $w_src);     }
+*/
+			imagecopyresampled($dest,$im, 0, 0, 0, 0, $w, $w, $w_src, $h_src);
 			$date=time();
 			$avatar=$date.".jpg";
 			imagejpeg($dest,$path.$avatar);
@@ -239,14 +230,10 @@ function savepro(){
 function profileed(){
 global $lang,$role;
 	dbc();
-
 	if ($role=='admin'){$query = mysql_query("SELECT * FROM users WHERE user_login='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");}
 	else{$query = mysql_query("SELECT * FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");}
-
     $data = mysql_fetch_assoc($query);
-
 	echo '<h2>Edit profile for '.$data['user_login'].'</h2>';
-//user_
 	echo '<div align="center">
 	<form action="" method="post" enctype="multipart/form-data">';
 	if ($role=='admin'){
@@ -261,17 +248,16 @@ global $lang,$role;
 	echo $lang[$_COOKIE['lan']]['fname'].'<br /><input name="fname" type="text" size="20" value="'.$data['user_fname'].'"><br />
 	'.$lang[$_COOKIE['lan']]['lname'].'<br /><input name="lname" type="text" size="20" value="'.$data['user_lname'].'"><br />
 	'.$lang[$_COOKIE['lan']]['email'].'<br /><input name="email" type="text" size="20" value="'.$data['user_email'].'"><br /><br />
+	<center><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></center>
 	'.$lang[$_COOKIE['lan']]['ava'].'<br /><input type="FILE" name="fupload">
 	<input name="savepro" type="submit" value="'.$lang[$_COOKIE['lan']]['save'].'"><br />
 	</form>
 	</div>';
-	if ($role!=='admin'){echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.$data['user_fname'].'">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';}
+	if ($role!=='admin'){echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.$data['user_login'].'">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';}
 }
 
 
 // Register
-
-
 function reg(){
 global $lang;
 echo '<h2>Register</h2>';
@@ -284,41 +270,37 @@ echo '<div align="center">
 <input name="submit" type="submit" value="'.$lang[$_COOKIE['lan']]['regb'].'"><br />
 </form>
 </div>';
-
-
 }
 
 
-
-
 function register(){
-dbc();
 global $lang;
-$query = mysql_query("SELECT * FROM `users`  WHERE `user_login`='".mysql_real_escape_string($_POST['login'])."'");
+dbc();
+
+$query = mysql_query("SELECT user_id FROM `users`  WHERE `user_login`='".mysql_real_escape_string($_POST['login'])."'");
 $row = mysql_num_rows($query);
-$query = mysql_query("SELECT * FROM `users`  WHERE `user_email`='".mysql_real_escape_string($_POST['email'])."'");
+$query = mysql_query("SELECT user_id FROM `users`  WHERE `user_email`='".mysql_real_escape_string($_POST['email'])."'");
 $row1 = mysql_num_rows($query);
-if(empty($_POST['login'])){echo $lang['en']['elog'];}
-  elseif(!preg_match("/[-a-zA-Z0-9]{3,15}/", $_POST['login'])){echo $lang['en']['wlog'];}
-    elseif(empty($_POST['password'])){echo $lang['en']['wpas'];} 
-      elseif($row > 0){echo $lang['en']['euser'];}
-        elseif(!preg_match("/[-a-zA-Z0-9]{3,30}/", $_POST['password'])){ echo $lang['en']['epas']; }
-          elseif($_POST['password'] != $_POST['password2']){echo $lang['en']['wpas2'];}
-            elseif((!preg_match("/[-a-zA-Z0-9_]{3,20}@[-a-zA-Z0-9]{2,64}\.[a-zA-Z\.]{2,9}/", $_POST['email']))or($row1>0)){echo $lang['en']['eemail'];}
-              else{$login = htmlspecialchars(stripslashes($_POST['login'])); $password = md5(md5(htmlspecialchars(stripslashes($_POST['password']))));  $email = mysql_real_escape_string($_POST['email']);
-				$insert = mysql_query("INSERT INTO `users` (`user_login` ,`user_password` ,`user_email`,`user_regdate`, `user_role` ) VALUES ('$login', '$password', '$email','".date( 'Y-m-d H:i:s' )."', 'user')");}
+if(empty($_POST['login'])){echo '<script type="text/javascript">alert("'.$lang['en']['elog'].'");</script>';}
+  elseif(!preg_match("/[-a-zA-Z0-9]{3,15}/", $_POST['login'])){echo '<script type="text/javascript">alert("'.$lang['en']['wlog'].'");</script>';}
+    elseif(empty($_POST['password'])){echo '<script type="text/javascript">alert("'.$lang['en']['wpas'].'");</script>';} 
+      elseif($row > 0){echo '<script type="text/javascript">alert("'.$lang['en']['euser'].'");</script>';}
+        elseif(!preg_match("/[-a-zA-Z0-9]{3,30}/", $_POST['password'])){ echo '<script type="text/javascript">alert("'.$lang['en']['epas'].'");</script>'; }
+          elseif($_POST['password'] != $_POST['password2']){echo '<script type="text/javascript">alert("'.$lang['en']['wpas2'].'");</script>';}
+            elseif((!preg_match("/[-a-zA-Z0-9_]{3,20}@[-a-zA-Z0-9]{2,64}\.[a-zA-Z\.]{2,9}/", $_POST['email']))or($row1>0)){echo '<script type="text/javascript">alert("'.$lang['en']['eemail'].'");</script>';}
+              else{
+				  $login = htmlspecialchars(stripslashes($_POST['login'])); 
+				  $password = md5(md5(htmlspecialchars(stripslashes($_POST['password']))));  
+				  $email = mysql_real_escape_string($_POST['email']);
+				  $insert = mysql_query("INSERT INTO `users` (`user_login` ,`user_password` ,`user_email`,`user_regdate`, `user_role` ) VALUES ('$login', '$password', '$email','".date( 'Y-m-d H:i:s' )."', 'user')");}
 
 if($insert == true){  
 	echo $lang['en']['reg'];  
 	login();
-	//print ('<script language="JavaScript">document.location="http://'.$_SERVER["HTTP_HOST"].'";  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
-	mail($email,$lang['en']['title'],$lang['en']['msg'],"Content-type: text/plain; charset=windows-1251 \r\nFrom: admin@".$_SERVER["HTTP_HOST"]);
 }else{  
-	echo $lang['en']['err'];  
-	print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
+
+	print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/register"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
   }                
-
-
 dbd();
 }
 
@@ -327,28 +309,20 @@ function login(){
 global $lang;
 
 function generateCode($length=6) {
-
-    $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHI JKLMNOPRQSTUVWXYZ0123456789";
-
+    $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPRQSTUVWXYZ0123456789";
     $code = "";
-
     $clen = strlen($chars) - 1;  
     while (strlen($code) < $length) {
-
             $code .= $chars[mt_rand(0,$clen)];  
     }
-
     return $code;
-
 }
-
 
 dbc();
 
 if(isset($_POST['submit']))
 {
     $query = mysql_query("SELECT user_id, user_password, user_role FROM users WHERE user_login='".mysql_real_escape_string($_POST['login'])."' LIMIT 1");
-
     $data = mysql_fetch_assoc($query);
 	if ($data['user_role']!=='banned'){
 		if($data['user_password'] === md5(md5($_POST['password'])))    {
@@ -360,11 +334,10 @@ if(isset($_POST['submit']))
 		}
     else
     {
-		print $lang[$_COOKIE['lan']]['elp'];
+		echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['elp'].'");</script>';
     }
 	}
     else{echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['banned'].'");</script>';}
-
 }
 dbd();
 }
@@ -392,7 +365,6 @@ else
 {
     return 0;
 }
-
 }
 
 
@@ -413,14 +385,12 @@ global $lang;
 
 function add(){
 global $lang;
-
 echo '  <form action="" method="post">
     <b>'.$lang[$_COOKIE['lan']]['title'].'</b>
     <p><input type="text" size="73" name="title" value="'.$_POST["title"].'"></p>
     <p><textarea rows="20" cols="55" name="text">'.$_POST["text"].'</textarea></p>
     <p><input type="submit" value="'.$lang[$_COOKIE['lan']]['post'].'"></p>
   </form>';
-
 }
 
 
@@ -429,17 +399,13 @@ global $lang;
 dbc();
     $query = mysql_query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
     $data = mysql_fetch_assoc($query);
-
-
-
-echo '  <form action="" method="post">
+	echo '  <form action="" method="post">
     <b>'.$lang[$_COOKIE['lan']]['title'].'</b>
     <p><input type="text" size="73" name="title1" value="'.$data["title"].'"></p>
     <p><textarea rows="20" cols="55" name="text1">'.$data["post"].'</textarea></p>
     <input type="hidden" name="n" value="'.$_GET['p'].'">
     <p><input type="submit" value="'.$lang[$_COOKIE['lan']]['save'].'"></p>
-  </form>';
-
+	</form>';
 }
 
 function cut($text){
@@ -474,11 +440,9 @@ global $lang;
       for ($i=1;$i<(floor($row/5)+2);$i++){ 
         if ($i==$page){echo '<b>'.$i.' </b>';} 
         else {echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/news/'.$i.'"> '.$i.' </a>';}
-        
       }
     }
   } 
-    
 }
 
 
@@ -486,7 +450,6 @@ global $lang;
 function article(){
 global $lang,$role;
     	dbc();
-    	
     	$query = mysql_query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
     	$data = mysql_fetch_assoc($query);
     	echo '<h3>'.$data['title'].'</h3>';
@@ -494,7 +457,6 @@ global $lang,$role;
     	if (($role=='editor')or($role=='admin')){ 
 		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/edit/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['edit'].'</a> ';
 		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/remove/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['remove'].'</a><hr>';
-	
 	}
 }
 
@@ -508,14 +470,14 @@ function remove($p){
 // titles
 
 function title(){
-global $title;
+global $role;
 dbc();
 if ($_GET['do']=='addnews'){
-  $title='Add news.';
+  $title='Add News';
 }
 
 if ($_GET['do']=='edit'){
-  $title='Edit news';
+  $title='Edit News';
 }
 
 if ($_GET['do']=='article'){
@@ -529,16 +491,37 @@ if ($_GET['do']=='register'){
 $title='Registration';
 }
 
+if ($_GET['do']=='userslist'){
+$title='Users List';
+}
 
+if ($_GET['do']=='profile'){
+$title='Profile';
+}
+
+if ($_GET['do']=='editprofile'){
+$title='Edit Profile';
+}
+echo $title;
 }
 
 
 
 
 //functions
+function role(){
+	if (isset($_COOKIE['hash'])){
+		dbc();
+		$query=mysql_query("SELECT user_role FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
+		$data = mysql_fetch_assoc($query);
+		return $data['user_role'];
+	}
+	else{return false;}
+}
+
+
 function dbc(){
 global $dbcn, $config;
-
 $dbcn = mysql_connect($config['server'], $config['login'], $config['passw']) or die("Error!"); 
 mysql_select_db($config['name_db'], $dbcn) or die("Error!"); 
 }

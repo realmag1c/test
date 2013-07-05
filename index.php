@@ -9,7 +9,7 @@ require_once 'inc.php';
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=windows-1251" />
-	<title><?title(); echo $title;?></title>
+	<title><?php title();?></title>
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
 	<link rel="stylesheet" href="http://<? echo $_SERVER["HTTP_HOST"]; ?>/style.css" type="text/css" media="screen, projection" />
@@ -29,9 +29,7 @@ require_once 'inc.php';
 			<div id="content">
 
 
-        <? showcontent();
-
-        ?>
+        <?php showcontent(); ?>
 <br>
         
 			</div><!-- #content-->
