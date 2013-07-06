@@ -35,7 +35,11 @@ function showcontent(){
 global $lan,$role,$lang;
 
 
-
+if (isset($_POST['newg'])){ 
+		$db=dc();
+		$q=$db->prepare('DELETE FROM poll WHERE post_id=? and login=?');
+		$q->execute(array($_POST['post_id'],$_POST['login']));
+}
 
 
 //main page
@@ -139,7 +143,9 @@ function userslist(){
 	global $lang,$role;
 		if ($role=='admin'){
 			$db=dc();
-			$resp = $db->query("SELECT user_role, user_login  FROM users ");
+			
+			$resp = $db->prepare("SELECT user_role, user_login  FROM users ");
+			$resp->execute();
 			if($resp){
 				echo '<div><ul>';
 				while($au = $resp->fetch()){
@@ -159,11 +165,19 @@ function profilerm(){
 	$db=dc();
 //	echo '<script type="text/javascript">alert("Are you sure?");</script>';
 	if (!isset($_GET['p'])){
-		$db->query("DELETE FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."';");	
+		$h=$_COOKIE['hash'];
+		$q=$db->prepare('DELETE FROM users WHERE user_hash=:h;');	
+		$q->bindparam(':h',$h,PDO::PARAM_STR, 50);
+		$q->execute();
+		
 		print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
 	}
 	elseif(role()=='admin'){
-		$db->query("DELETE FROM users WHERE user_login='".mysql_real_escape_string($_GET['p'])."';");	
+
+		$h=$_GET['p'];
+		$q=$db->prepare("DELETE FROM users WHERE user_login=:h;");	
+		$q->bindparam(':h',$h,PDO::PARAM_STR, 50);
+		$q->execute();
 		print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/userslist"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
 	}
 }
@@ -173,20 +187,25 @@ function profile(){
 	
 	global $lang, $role;
 	$db=dc();
-    $query = $db->query("SELECT * FROM users WHERE user_login='".$_GET['p']."' LIMIT 1");
-    $data = $query->fetch();
-	echo "<h2>".$data['user_login']."'s profile</h2>";	
-	echo '<center><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></center>';
-	echo '<div><ul>
-	<li>First name: '.$data['user_fname'].'</li>
-	<li>Last name: '.$data['user_lname'].'</li>
-	<li>Email: '.$data['user_email'].'</li>
-	<li>Registered since: '.$data['user_regdate'].'</li>
-	<li>Last login: '.$data['user_llogin'].'</li>
-	</ul></div>';
-	if($role!==false){
-		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/editprofile">'.$lang[$_COOKIE['lan']]['pedit'].'</a> ';
-		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';	
+    $l=$_GET['p'];
+    $query = $db->prepare("SELECT * FROM users WHERE user_login=:l LIMIT 1");
+    $query->bindparam(':l',$l,PDO::PARAM_STR, 50);
+    $query->execute();
+    if ($query->rowcount()>0){
+		$data = $query->fetch();
+		echo "<h2>".$data['user_login']."'s profile</h2>";	
+		echo '<center><img src="http://'.$_SERVER["HTTP_HOST"].'/avatars/'.$data['user_ava'].'"></center>';
+		echo '<div><ul>
+		<li>First name: '.$data['user_fname'].'</li>
+		<li>Last name: '.$data['user_lname'].'</li>
+		<li>Email: '.$data['user_email'].'</li>
+		<li>Registered since: '.$data['user_regdate'].'</li>
+		<li>Last login: '.$data['user_llogin'].'</li>
+		</ul></div>';
+		if($role!==false){
+			echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/editprofile">'.$lang[$_COOKIE['lan']]['pedit'].'</a> ';
+			echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/profilerm">'.$lang[$_COOKIE['lan']]['prem'].'</a>';	
+		}
 	}
 }
 
@@ -234,12 +253,32 @@ function savepro(){
 	if (isset($_POST['fname'])){$fname=$_POST['fname'];}else{$fname='';}
 	if (isset($_POST['lname'])){$lname=$_POST['lname'];}else{$lname='';}
 	if ($role=='admin'){
-		$db->query("UPDATE users SET user_role='".mysql_real_escape_string($_POST['role'])."', user_ava='".mysql_real_escape_string($avatar)."', user_fname='".mysql_real_escape_string($fname)."', user_lname='".mysql_real_escape_string($lname)."', user_email='".mysql_real_escape_string($_POST['email'])."' WHERE user_login='".mysql_real_escape_string($_POST['ulogin'])."';");		
-		echo $_POST['ulogin'];
+		$r=$_POST['role'];
+		$a=$avatar;
+		$ul=$_POST['ulogin'];
+		$em=$_POST['email'];
+		$q =$db->prepare('UPDATE users SET user_role=:r, user_ava=:a, user_fname=:fn, user_lname=:ln, user_email=:em WHERE user_login=:ul;');		
+		$q->bindparam(':r',$r,PDO::PARAM_STR, 50);
+		$q->bindparam(':a',$a,PDO::PARAM_STR, 50);
+		$q->bindparam(':fn',$fname,PDO::PARAM_STR, 50);
+		$q->bindparam(':ln',$lname,PDO::PARAM_STR, 50);
+		$q->bindparam(':em',$em,PDO::PARAM_STR, 50);
+		$q->bindparam(':ul',$ul,PDO::PARAM_STR, 50);
+		$q->execute;
+		
 		print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/userslist"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
 	}
 	else{
-		$db->query("UPDATE users SET user_ava='".mysql_real_escape_string($avatar)."', user_fname='".mysql_real_escape_string($fname)."', user_lname='".mysql_real_escape_string($lname)."', user_email='".mysql_real_escape_string($_POST['email'])."' WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."';");
+
+		$a=$avatar;
+		$em=$_POST['email'];
+		$h=$_COOKIE['hash'];
+		$db->prepare("UPDATE users SET user_ava=:a, user_fname=:fn, user_lname=:ln, user_email=:em WHERE user_hash=:h;");
+		$q->bindparam(':a',$a,PDO::PARAM_STR, 50);
+		$q->bindparam(':fn',$fname,PDO::PARAM_STR, 50);
+		$q->bindparam(':ln',$lname,PDO::PARAM_STR, 50);
+		$q->bindparam(':em',$em,PDO::PARAM_STR, 50);
+		$q->bindparam(':h',$h,PDO::PARAM_STR, 50);		
 		print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/profile"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
 	}
 	
@@ -250,9 +289,17 @@ function savepro(){
 function profileed(){
 global $lang,$role;
 	$db=dc();
-	if ($role=='admin'){$query = $db->query("SELECT * FROM users WHERE user_login='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");}
-	else{$query = $db->query("SELECT * FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");}
-    $data = $query->fetch();
+	if ($role=='admin'){
+		$q = $db->prepare("SELECT * FROM users WHERE user_login=:l LIMIT 1");
+		$q->bindparam(':l',$_GET['p'],PDO::PARAM_STR, 50);
+		$q->execute();
+	}
+	else{
+		$q = $db->prepare("SELECT * FROM users WHERE user_hash=:h LIMIT 1");
+		$q->bindparam(':h',$_COOKIE['hash'],PDO::PARAM_STR, 50);
+		$q->execute();
+	}
+    $data = $q->fetch();
 	echo '<h2>Edit profile for '.$data['user_login'].'</h2>';
 	echo '<div align="center">
 	<form action="" method="post" enctype="multipart/form-data">';
@@ -297,9 +344,11 @@ function register(){
 global $lang;
 $db=dc();
 
-$query = $db->query("SELECT user_id FROM `users`  WHERE `user_login`='".mysql_real_escape_string($_POST['login'])."'");
+$query = $db->prepare("SELECT user_id FROM users  WHERE user_login=?");
+$query->execute(array($_POST['login']));
 $row = $query->rowCount();
-$query = $db->query("SELECT user_id FROM `users`  WHERE `user_email`='".mysql_real_escape_string($_POST['email'])."'");
+$query = $db->prepare("SELECT user_id FROM users  WHERE user_email=?");
+$query->execute(array($_POST['email']));
 $row1 = $query->rowCount();
 if(empty($_POST['login'])){echo '<script type="text/javascript">alert("'.$lang['en']['elog'].'");</script>';}
   elseif(!preg_match("/[-a-zA-Z0-9]{3,15}/", $_POST['login'])){echo '<script type="text/javascript">alert("'.$lang['en']['wlog'].'");</script>';}
@@ -312,16 +361,18 @@ if(empty($_POST['login'])){echo '<script type="text/javascript">alert("'.$lang['
 				  $login = mysql_real_escape_string($_POST['login']); 
 				  $password = md5(md5(mysql_real_escape_string($_POST['password'])));  
 				  $email = mysql_real_escape_string($_POST['email']);
-				  $insert = $db->query("INSERT INTO `users` (`user_login` ,`user_password` ,`user_email`,`user_regdate`, `user_role` ) VALUES ('$login', '$password', '$email','".date( 'Y-m-d H:i:s' )."', 'user')");}
+				  
+				  $i = $db->prepare("INSERT INTO users (user_login ,user_password ,user_email,user_regdate, user_role ) VALUES (?, ?, ?,?, ?)");}
+				  $i->execute(array($login,$password,$email,date( 'Y-m-d H:i:s' ),'user'));
 
-if($insert == true){  
+if($i == true){  
 	echo $lang['en']['reg'];  
 	login();
 }else{  
 
 	print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'/register"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');
   }                
-dbd();
+
 }
 
 
@@ -342,24 +393,24 @@ $db=dc();
 
 if(isset($_POST['submit']))
 {
-    $query = $db->query("SELECT user_id, user_password, user_role FROM users WHERE user_login='".mysql_real_escape_string($_POST['login'])."' LIMIT 1");
+    $query = $db->prepare("SELECT user_id, user_password, user_role FROM users WHERE user_login=? LIMIT 1");
+    $query->execute(array($_POST['login']));
     $data = $query->fetch();
 	if ($data['user_role']!=='banned'){
-		if($data['user_password'] === md5(md5($_POST['password'])))    {
+		if($data['user_password'] === md5(md5($_POST['password']))){
 			$hash = md5(generateCode(10));
 			$db->query("UPDATE users SET user_hash='".$hash."', user_llogin='".date( 'Y-m-d H:i:s' )."' WHERE user_id='".$data['user_id']."'");
 			setcookie("id", $data['user_id'], time()+60*60*24*30,"/");
 			setcookie("hash", $hash, time()+60*60*24*30,"/");
 			print ('<script language="JavaScript">setTimeout(function(){document.location="http://'.$_SERVER["HTTP_HOST"].'"},1000);  </script><center><h4>'.$lang[$_COOKIE['lan']]['java'].'</h4></center>');   
 		}
-    else
-    {
-		echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['elp'].'");</script>';
-    }
+		else{
+			echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['elp'].'");</script>';
+		}
 	}
-    else{echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['banned'].'");</script>';}
+		else{echo '<script type="text/javascript">alert("'.$lang[$_COOKIE['lan']]['banned'].'");</script>';}
 }
-dbd();
+
 }
 
 
@@ -368,7 +419,8 @@ global $lang;
 $db=dc();
 if (isset($_COOKIE['id']) and isset($_COOKIE['hash']))
 {   
-    $query = $db->query("SELECT * FROM users WHERE user_hash = '".$_COOKIE['hash']."' LIMIT 1");
+    $query = $db->prepare("SELECT * FROM users WHERE user_hash = ? LIMIT 1");
+    $query->execute(array($_COOKIE['hash']));
     $userdata = $query->fetch();
     if(($userdata['user_hash'] !== $_COOKIE['hash']) or ($userdata['user_id'] !== $_COOKIE['id']))
     {
@@ -407,31 +459,49 @@ global $lang;
 function comment(){
 	$db=dc();
 	if ((isset($_POST['comtitle']))and($_POST['comtitle']!=='')){$cti=$_POST['comtitle'];} else{$cti=cutt($_POST['comtext']);}
-	$db->query("INSERT INTO `comments` (`post_id` ,`title`, `comment` ,`login` ,`comdate` ) VALUES ('".$_POST['post_id']."', '".$cti."', '".$_POST['comtext']."', '".$_POST['user']."', '".date( 'Y-m-d H:i:s' )."');");
+	$q=$db->prepare("INSERT INTO comments (post_id ,title, comment ,login ,comdate ) VALUES (?, ?, ?, ?, ?);");
+	$q->execute(array($_POST['post_id'], $cti,$_POST['comtext'],$_POST['user'],date( 'Y-m-d H:i:s' )));
 }
 
 function article(){
 global $lang,$role;
     	$db=dc();
-    	$query = $db->query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
+    	$query = $db->prepare("SELECT * FROM news WHERE id=? LIMIT 1");
+    	$query->execute(array($_GET['p']));
     	$data = $query->fetch();
 		if($_COOKIE['lan']=='en'){ $t='titleen'; $te='posten';}else{$t='titleua'; $te='postua';}
     	echo '<h3>'.$data[$t].'</h3>';
+    	//poll results
+    	$q=$db->prepare("SELECT * FROM poll WHERE post_id=?");
+    	$q->execute(array($_GET['p']));
+    	if($q->rowcount()<1){echo $lang[$_COOKIE['lan']]['npoll'];}
+    	else{
+			$i=0;
+			$a=0;
+			while($d = $q->fetch()){
+				$a=$a+$d['rating'];
+				$i++;
+			}
+			echo $lang[$_COOKIE['lan']]['apoll'].' [ '.$a/$i.' ]  -  '.$i.' '.$lang[$_COOKIE['lan']]['aapoll'];
+		}
+    	
+
+    	
     	echo '<div>'.$data[$te].'</div>';
     	if (($role=='editor')or($role=='admin')){ 
 		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/edit/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['edit'].'</a> ';
 		echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/remove/'.$data['id'].'">'.$lang[$_COOKIE['lan']]['remove'].'</a><hr>';
-
 		}
 
 		//comments
 		echo '<h3>Comments</h3>  <form action="" method="post">';
-		$q=$db->query("SELECT * FROM comments WHERE post_id='".mysql_real_escape_string($_GET['p'])."'");
+		$q=$db->prepare("SELECT * FROM comments WHERE post_id=?");
+		$q->execute(array($_GET['p']));
 		if ($q){
 			while($d = $q->fetch()){
 				echo '<b>'.$d['title'].'</b><br>';
 				echo $d['comment'].'<br>';
-				echo 'Posted: '.$d['comdate'].' by <a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.$d['login'].'">'.$d['login'].'</a>';
+				echo 'Posted: '.$d['comdate'].' by <a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.$d['login'].'">'.$d['login'].'</a><br><br>';
 			}
 		}
 		if ($role!==false){		
@@ -442,7 +512,34 @@ global $lang,$role;
 			<input type="hidden" name="user" value="'.user().'">
 			<p><input type="submit" value="'.$lang[$_COOKIE['lan']]['post'].'"></p>    
 			</form>';
-		//end comment
+		//end comments
+		
+		//pole
+		}
+		if ($role!==false){
+			
+			echo '<h4>poll</h4>';
+			echo '<div class="poll">';
+			$db=dc();
+			$q=$db->prepare('SELECT * FROM poll WHERE login=? and post_id=?;');
+			$q->execute(array(user(),$_GET['p']));
+			if ($q->rowCount()<1){
+				echo '<form name="poll" action="http://'.$_SERVER["HTTP_HOST"].'/article/'.$_GET['p'].'" method="POST">';
+				echo '<input class="question_radio" type="radio" name="group1" value="1">1';
+				echo '<input class="question_radio" type="radio" name="group1" value="2">2';
+				echo '<input class="question_radio" type="radio" name="group1" value="3">3';
+				echo '<input class="question_radio" type="radio" name="group1" value="4">4';
+				echo '<input class="question_radio" type="radio" name="group1" value="5">5</form>';
+			}
+			else{
+				$d=$q->fetch();
+				echo $lang[$_COOKIE['lan']]['ypoll'].' : [ '.$d['rating'].' ]  ';
+				echo '<form name="poll1" action="http://'.$_SERVER["HTTP_HOST"].'/article/'.$_GET['p'].'" method="POST">
+				<input type="submit" name="newg" value="'.$lang[$_COOKIE['lan']]['dpoll'].'" >
+				<input type="hidden" name="login" value="'.user().'">
+				<input type="hidden" name="post_id" value="'.$_GET['p'].'"> </form>';
+			}
+			echo '</div>';
 		}
 }
 
@@ -466,7 +563,8 @@ echo '  <form action="" method="post">
 function edit(){
 global $lang;
 $db=dc();
-    $query = $db->query("SELECT * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."' LIMIT 1");
+    $query = $db->prepare("SELECT * FROM news WHERE id=? LIMIT 1");
+    $query->execute(array($_GET['p']));
     $data = $query->fetch();
     if($_COOKIE['lan']=='en'){ $t='titleen'; $te='posten';}else{$t='titleua'; $te='postua';}
 	echo '  <form action="" method="post">
@@ -501,13 +599,18 @@ else{return $text;}
 function showmain($page){
 global $lang;
   $db=dc();
-  if($page<1){$page=1;}
+
+  if(!isset($_GET['p'])){$page=1;}
+
   $p=($page-1)*5;
   if (clogin()=='ok'){$cl=true;}else{$cl=false;}
-  $query = $db->query("SELECT id FROM `news` ;");
+  $query = $db->query('SELECT id FROM news ;');
   $row = $query->rowCount();
-  $query="SELECT DISTINCT *  FROM news ORDER BY id DESC LIMIT ".mysql_real_escape_string($p).",5;";
-  $resp=$db->query($query);
+  $db=dc();
+  $resp=$db->prepare('SELECT DISTINCT *  FROM news ORDER BY id DESC LIMIT :p,5;');
+  $resp->bindparam(':p',$p,PDO::PARAM_INT);
+  $resp->execute();
+  
   if($resp){
 	if($_COOKIE['lan']=='en'){ $t='titleen'; $te='posten';}else{$t='titleua'; $te='postua';}
     while($au = $resp->fetch()){
@@ -524,7 +627,8 @@ global $lang;
         else {echo '<a href="http://'.$_SERVER["HTTP_HOST"].'/news/'.$i.'"> '.$i.' </a>';}
       }
     }
-  } 
+  }
+  else{ echo "\nPDO::errorInfo():\n"; print($resp->errorInfo());} 
 }
 
 
@@ -532,7 +636,7 @@ global $lang;
 
 
 function remove($p){
-	$query = $db->query("DELETE * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."'");
+	$query = $db->prepare("DELETE * FROM news WHERE id='".mysql_real_escape_string($_GET['p'])."'");
 }
 
 
@@ -585,8 +689,11 @@ echo $title;
 function role(){
 	if (isset($_COOKIE['hash'])){
 		$db=dc();
-		$query=$db->query("SELECT user_role FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
-		$data = $query->fetch();
+		$hash=$_COOKIE['hash'];
+		$q=$db->prepare("SELECT user_role FROM users WHERE user_hash=:hash LIMIT 1");
+		$q->bindparam(':hash',$hash,PDO::PARAM_STR, 50);
+		$q->execute();
+		$data = $q->fetch();
 		return $data['user_role'];
 	}
 	else{return false;}
@@ -595,7 +702,10 @@ function role(){
 function user(){
 	if (isset($_COOKIE['hash'])){
 		$db=dc();
-		$query=$db->query("SELECT user_login FROM users WHERE user_hash='".mysql_real_escape_string($_COOKIE['hash'])."' LIMIT 1");
+		$hash=$_COOKIE['hash'];
+		$query=$db->prepare("SELECT user_login FROM users WHERE user_hash=:hash LIMIT 1");
+		$query->bindparam(':hash',$hash,PDO::PARAM_STR, 50);
+		$query->execute();
 		$data = $query->fetch();
 		return $data['user_login'];
 	}

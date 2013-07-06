@@ -14,7 +14,17 @@ require_once 'inc.php';
 	<title><?php title();?></title>
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
-	<link rel="stylesheet" href="http://<? echo $_SERVER["HTTP_HOST"]; ?>/style.css" type="text/css" media="screen, projection" />
+	<link rel="stylesheet" href="http://<?php echo $_SERVER["HTTP_HOST"]; ?>/style.css" type="text/css" media="screen, projection" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function () { 
+    $(".question_radio").click(function () {
+
+      $.post("http://<?php echo $_SERVER["HTTP_HOST"]; ?>/poll.php",{"rating":$("input[name='group1']:checked").val(),"post_id":<? echo $_GET['p'];?>,"login":"<? echo user();?>"}, function(respond){$(".poll").html(respond);});
+
+    });
+  });
+</script>
 </head>
 
 <body>
@@ -65,7 +75,7 @@ echo '<div align="center">
 }
 else{
 	if ($role=='admin'){ echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/userslist">'.$lang[$_COOKIE['lan']]['ulist'].'</a></div>'; }
-	echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';
+	echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/profile/'.user().'">'.$lang[$_COOKIE['lan']]['profile'].'</a></div>';
 	if (($role=='editor')or($role=='admin')){ echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/addnews">'.$lang[$_COOKIE['lan']]['add'].'</a></div>';}
 	echo '<div><a href="http://'.$_SERVER["HTTP_HOST"].'/logout">'.$lang[$_COOKIE['lan']]['logout'].'</a></div>';
 
